@@ -18,6 +18,7 @@
   <div class="glow glow-1" aria-hidden="true"></div>
   <div class="glow glow-2" aria-hidden="true"></div>
   <div class="grid-floor" aria-hidden="true"><div class="grid-flow"></div></div>
+  <canvas id="rain" aria-hidden="true"></canvas>
   <div class="noise" aria-hidden="true"></div>
 
   <main>
@@ -32,7 +33,7 @@
     <p class="tagline reveal">Backend &amp; platform engineering.<br>Go, microservices, high-load services.</p>
 
     <div class="badges mono reveal">
-      <span class="badge"><span class="dot" aria-hidden="true"></span>Open to interesting projects</span>
+      <span class="badge"><span class="dot" title="Follow the white rabbit" aria-hidden="true"></span>Open to interesting projects</span>
       <span class="badge">Building with AI</span>
       <span class="badge">Moscow · UTC+3</span>
     </div>
@@ -62,5 +63,45 @@
   </main>
 
   <footer class="mono reveal">© 2026 · built with 0 dependencies</footer>
+
+  <script>
+    // matrix rain: fades toward transparent (destination-out), so glows show through
+    (() => {
+      const c = document.getElementById('rain'), x = c.getContext('2d');
+      const FS = 16, GLYPHS = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉ0123456789<>{}[]/\\|=+*$';
+      let cols, drops, tints;
+      const resize = () => {
+        c.width = innerWidth; c.height = innerHeight;
+        cols = Math.ceil(c.width / FS);
+        drops = Array.from({ length: cols }, () => Math.floor(Math.random() * -60));
+        tints = Array.from({ length: cols }, () => Math.random() < 0.4 ? 'rgba(34, 211, 238, 0.85)' : 'rgba(129, 140, 248, 0.85)');
+      };
+      addEventListener('resize', resize);
+      resize();
+
+      const noMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!noMotion) {
+        let tick = 0;
+        (function frame() {
+          x.globalCompositeOperation = 'destination-out';
+          x.fillStyle = 'rgba(0,0,0,0.14)';
+          x.fillRect(0, 0, c.width, c.height);
+          x.globalCompositeOperation = 'source-over';
+          if (tick++ % 2 === 0) { // every other frame: calmer speed
+            x.font = FS + 'px monospace';
+            drops.forEach((y, i) => {
+              x.fillStyle = tints[i];
+              x.fillText(GLYPHS[Math.random() * GLYPHS.length | 0], i * FS, y * FS);
+              drops[i] = y * FS > c.height && Math.random() > 0.975 ? 0 : y + 1;
+            });
+          }
+          requestAnimationFrame(frame);
+        })();
+      }
+
+      console.log('%cWake up, Neo...', 'color:#34d399;font-size:14px');
+      console.log('%cFollow the white rabbit.', 'color:#6366f1');
+    })();
+  </script>
 </body>
 </html>
